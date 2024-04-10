@@ -71,10 +71,22 @@
   (let ((dir (slot-value venv 'directory)))
     (loop for package in packages
           collect (let ((args (list "bash" "-c" (format nil "source ~A && ~A install ~A"
-                                                        (format nil "~Abin/activate" dir)
+                                                        (uiop:merge-pathnames* "bin/activate" (uiop:ensure-directory-pathname dir))
                                                         (slot-value venv 'pip)
                                                         package))))
                     (uiop:run-program args :ignore-error-status t :output output :error-output error-output)))))
+
+(defun get-packages-in-venv (venv)
+  "Get the list PACKAGES in VENV. OUTPUT and ERROR-OUTPUT managed as per UIOP:RUN-PROGRAM."
+  (assert (typep venv 'python-venv) (venv)
+          "The object ~A is not an instance of VENV." venv)
+  (let* ((dir (slot-value venv 'directory))
+         (output (uiop:run-program (list "bash" "-c" (format nil "source ~A && ~A list --format json"
+                                                             (uiop:merge-pathnames* "bin/activate" (uiop:ensure-directory-pathname dir))
+                                                             (slot-value venv 'pip)))
+                                   :output :string)))
+    (loop for p in (json:decode-json-from-string output)
+          collect (cons (cdr (assoc :name p)) (cdr (assoc :version p))))))
 
 (defun run-python-program-in-venv (venv python-source-file args &key (ignore-error-status t) (output uiop:*stdout*) (error-output uiop:*stderr*))
   "Run the PYTHON-SOURCE-FILE and ARGS in a python VENV. OUTPUT and
@@ -83,10 +95,10 @@ ERROR-OUTPUT managed as per UIOP:RUN-PROGRAM."
           "The object ~A is not an instance of VENV." venv)
   (let ((dir (slot-value venv 'directory)))
     (let ((run-program-args (list "bash" "-c" (format nil "source ~A && ~A ~A ~{~A~^ ~}"
-                                          (format nil "~Abin/activate" dir)
-                                          (slot-value venv 'python)
-                                          python-source-file
-                                          args))))
+                                                      (uiop:merge-pathnames* "bin/activate" (uiop:ensure-directory-pathname dir))
+                                                      (slot-value venv 'python)
+                                                      python-source-file
+                                                      args))))
       (uiop:run-program run-program-args :ignore-error-status ignore-error-status :output output :error-output error-output))))
 
 (defun run-python-source-in-venv (venv python-source args &key (ignore-error-status t) (output uiop:*stdout*) (error-output uiop:*stderr*))
@@ -99,7 +111,7 @@ and ERROR-OUTPUT managed as per UIOP:RUN-PROGRAM."
     :close-stream
     (let ((dir (slot-value venv 'directory)))
       (let ((run-program-args (list "bash" "-c" (format nil "source ~A && ~A ~A ~{~A~^ ~}"
-                                                        (format nil "~Abin/activate" dir)
+                                                        (uiop:merge-pathnames* "bin/activate" (uiop:ensure-directory-pathname dir))
                                                         (slot-value venv 'python)
                                                         python-source-file
                                                         args))))
