@@ -69,12 +69,13 @@
   (assert (listp packages) (packages)
           "The object ~A is not an list of packages." packages)
   (let ((dir (slot-value venv 'directory)))
-    (loop for package in packages
-          collect (let ((args (list "bash" "-c" (format nil "source ~A && ~A install ~A"
-                                                        (uiop:merge-pathnames* "bin/activate" (uiop:ensure-directory-pathname dir))
-                                                        (slot-value venv 'pip)
-                                                        package))))
-                    (uiop:run-program args :ignore-error-status t :output output :error-output error-output)))))
+    (dolist (package packages)
+      do (let ((args (list "bash" "-c" (format nil "source ~A && ~A install ~A"
+                                               (uiop:merge-pathnames* "bin/activate" (uiop:ensure-directory-pathname dir))
+                                               (slot-value venv 'pip)
+                                               package))))
+           (uiop:run-program args :ignore-error-status t :output output :error-output error-output)))
+    (get-packages-in-venv venv)))
 
 (defun get-packages-in-venv (venv)
   "Get the list PACKAGES in VENV. OUTPUT and ERROR-OUTPUT managed as per UIOP:RUN-PROGRAM."

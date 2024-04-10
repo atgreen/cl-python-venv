@@ -30,4 +30,5 @@
   :version (:read-file-form "version.sexp")
   :serial t
   :components ((:file "package")
-               (:file "python-venv")))
+               (:file "python-venv"))
+  :depends-on (:cl-json))
