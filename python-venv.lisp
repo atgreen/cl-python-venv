@@ -78,7 +78,8 @@
     (get-packages-in-venv venv)))
 
 (defun get-packages-in-venv (venv)
-  "Get the list PACKAGES in VENV. OUTPUT and ERROR-OUTPUT managed as per UIOP:RUN-PROGRAM."
+  "Get the list PACKAGES in VENV along with their version numbers. OUTPUT
+and ERROR-OUTPUT managed as per UIOP:RUN-PROGRAM."
   (assert (typep venv 'python-venv) (venv)
           "The object ~A is not an instance of VENV." venv)
   (let* ((dir (slot-value venv 'directory))
