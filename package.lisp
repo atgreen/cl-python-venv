@@ -27,4 +27,6 @@
   (:use #:cl)
   (:export make-python-venv delete-python-venv
            install-packages-in-venv get-packages-in-venv
-           run-python-program-in-venv run-python-source-in-venv))
+           run-program-in-venv
+           run-python-program-in-venv
+           run-python-source-in-venv))

@@ -90,6 +90,18 @@ and ERROR-OUTPUT managed as per UIOP:RUN-PROGRAM."
     (loop for p in (json:decode-json-from-string output)
           collect (cons (cdr (assoc :name p)) (cdr (assoc :version p))))))
 
+(defun run-program-in-venv (venv program args &key (ignore-error-status t) (output uiop:*stdout*) (error-output uiop:*stderr*))
+  "Run PROGRAM and ARGS in a python VENV. OUTPUT and ERROR-OUTPUT managed
+as per UIOP:RUN-PROGRAM."
+  (assert (typep venv 'python-venv) (venv)
+          "The object ~A is not an instance of VENV." venv)
+  (let ((dir (slot-value venv 'directory)))
+    (let ((run-program-args (list "bash" "-c" (format nil "source ~A && ~A ~{~A~^ ~}"
+                                                      (uiop:merge-pathnames* "bin/activate" (uiop:ensure-directory-pathname dir))
+                                                      program
+                                                      args))))
+      (uiop:run-program run-program-args :ignore-error-status ignore-error-status :output output :error-output error-output))))
+
 (defun run-python-program-in-venv (venv python-source-file args &key (ignore-error-status t) (output uiop:*stdout*) (error-output uiop:*stderr*))
   "Run the PYTHON-SOURCE-FILE and ARGS in a python VENV. OUTPUT and
 ERROR-OUTPUT managed as per UIOP:RUN-PROGRAM."
